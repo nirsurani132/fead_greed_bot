@@ -26,6 +26,8 @@ jobs:
         
         containerAppName: fear-greed-bot-app
         resourceGroup: ${{ secrets.RESOURCE_GROUP }}
-        containerAppEnvironment: fear-greed-bot-app-env 
+        containerAppEnvironment: fear-greed-bot-app-env
+
+        acrName: ${{ secrets.RESOURCE_GROUP }}
         
-        targetPort: 8080
+        targetPort: 8080 # ודא שהשורה הזו מיושרת לשורות שמעליה!
