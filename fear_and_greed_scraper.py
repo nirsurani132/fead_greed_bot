@@ -27,8 +27,6 @@ def capture_fear_greed_gauge():
         page.set_extra_http_headers({"User-Agent": _get_user_agent()})
         page.goto(url)
         page.wait_for_timeout(3000)  # Wait for dynamic content to load
-        page.click('text=Overview')  # Click the Overview tab to show the gauge
-        page.wait_for_timeout(1000)
         
         # Wait for the gauge div and SVG to load
         page.wait_for_selector('div.market-tabbed-container .market-fng-gauge svg')
