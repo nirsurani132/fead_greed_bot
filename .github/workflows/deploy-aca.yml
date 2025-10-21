@@ -1,0 +1,35 @@
+name: Deploy to Azure Container App
+
+on:
+  push:
+    branches:
+      - main 
+  workflow_dispatch: 
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+    
+    - uses: actions/checkout@v4
+      name: Check out source code
+
+    - name: Azure Login
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+    # בנייה, דחיפה ל-Registry המנוהל ופריסה
+    - name: Build and Deploy Container App
+      uses: azure/container-apps-deploy-action@v1
+      with:
+        appSourcePath: ${{ github.workspace }}
+        
+        containerAppName: fear-greed-bot-app
+        resourceGroup: ${{ secrets.RESOURCE_GROUP }}
+        containerAppEnvironment: fear-greed-bot-app-env 
+        
+        targetPort: 8080 
+
+    - name: Azure Logout
+      uses: azure/logout@v1
