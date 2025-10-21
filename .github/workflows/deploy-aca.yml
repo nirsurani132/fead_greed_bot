@@ -19,7 +19,6 @@ jobs:
       with:
         creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-    # בנייה, דחיפה ל-Registry המנוהל ופריסה
     - name: Build and Deploy Container App
       uses: azure/container-apps-deploy-action@v1
       with:
