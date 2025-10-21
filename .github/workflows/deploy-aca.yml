@@ -22,16 +22,22 @@ jobs:
     - name: Build and Deploy Container App
       uses: azure/container-apps-deploy-action@v1
       with:
+        # הגדרת נתיב הקוד וה-Dockerfile במפורש
         appSourcePath: ${{ github.workspace }}
-        
+        dockerfilePath: Dockerfile # <-- פתרון לשגיאת Docker Build
+
+        # פרטי האפליקציה ב-Azure
         containerAppName: fear-greed-bot-app
         resourceGroup: ${{ secrets.RESOURCE_GROUP }}
         containerAppEnvironment: fear-greed-bot-app-env
         
-        # 🚨 התיקון: מוסיף את ה-URL הפיקטיבי/מעקף כדי לעמוד בדרישת החובה של ה-Action
+        # 🚨 פתרון לשגיאת ResourceNotFound: אם האפליקציה לא קיימת, צור אותה!
+        upCommand: true 
+        
+        # פרמטרי ה-Registry (לצורך עקיפת הדרישה הקשיחה)
         registryUrl: ${{ secrets.REGISTRY_SERVER }} 
         
-        # פרטי כניסה: נדרשים לדחוף ל-Registry המנוהל הפנימי
+        # פרטי כניסה ל-ACR המשתמשים ב-Service Principal
         acrUsername: ${{ fromJson(secrets.AZURE_CREDENTIALS).clientId }}
         acrPassword: ${{ fromJson(secrets.AZURE_CREDENTIALS).clientSecret }}
         
