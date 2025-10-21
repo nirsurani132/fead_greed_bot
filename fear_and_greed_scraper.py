@@ -26,13 +26,14 @@ def capture_fear_greed_gauge():
         page.set_viewport_size({"width": 1200, "height": 800})
         page.set_extra_http_headers({"User-Agent": _get_user_agent()})
         page.goto(url)
+        page.wait_for_load_state('networkidle')
         page.wait_for_timeout(3000)  # Wait for dynamic content to load
         
-        # Wait for the gauge div and SVG to load
-        page.wait_for_selector('div.market-tabbed-container .market-fng-gauge svg')
+        # Wait for the container div to load
+        page.wait_for_selector('div.market-tabbed-container', timeout=10000)
         
-        # Screenshot the gauge div inside the tabbed container
-        element = page.locator('div.market-tabbed-container .market-fng-gauge')
+        # Screenshot the container div
+        element = page.locator('div.market-tabbed-container')
         screenshot_bytes = element.screenshot()
         
         browser.close()
