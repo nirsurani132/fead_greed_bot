@@ -28,7 +28,10 @@ jobs:
         resourceGroup: ${{ secrets.RESOURCE_GROUP }}
         containerAppEnvironment: fear-greed-bot-app-env
         
-        # פרמטרי ה-Registry (שימוש בזהות Service Principal)
+        # 🚨 התיקון: מוסיף את ה-URL הפיקטיבי/מעקף כדי לעמוד בדרישת החובה של ה-Action
+        registryUrl: ${{ secrets.REGISTRY_SERVER }} 
+        
+        # פרטי כניסה: נדרשים לדחוף ל-Registry המנוהל הפנימי
         acrUsername: ${{ fromJson(secrets.AZURE_CREDENTIALS).clientId }}
         acrPassword: ${{ fromJson(secrets.AZURE_CREDENTIALS).clientSecret }}
         
