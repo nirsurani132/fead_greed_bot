@@ -7,6 +7,7 @@ import asyncio
 import io
 from datetime import datetime, timedelta
 from fear_and_greed_scraper import capture_fear_greed_gauge
+from flask import Flask
 
 # Load environment variables from .env file
 load_dotenv()
@@ -110,4 +111,17 @@ async def stop_fear_greed(ctx):
     except Exception as e:
         logger.error(f"Error in stop_fear_greed command: {e}")
 
-bot.run(token)
+if __name__ == '__main__':
+    app = Flask(__name__)
+
+    @app.route('/')
+    def home():
+        return 'Bot is running!'
+
+    import threading
+    def run_bot():
+        bot.run(token)
+    bot_thread = threading.Thread(target=run_bot)
+    bot_thread.start()
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port)
