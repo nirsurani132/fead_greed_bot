@@ -22,10 +22,13 @@ jobs:
     - name: Build and Deploy Container App
       uses: azure/container-apps-deploy-action@v1
       with:
-        # פתרון לבעיית Docker Build ו-ResourceNotFound: מגדיר את תמונת היעד המלאה
-        imageToBuild: ${{ secrets.REGISTRY_SERVER }}/fear-greed-bot-image:${{ github.sha }} 
+        # 🚨 מורה ל-Action להשתמש ב-ACR הגלוי שיצרת כרגע 🚨
+        acrName: ${{ secrets.ACR_NAME }} 
         
-        # הגדרת נתיב הקוד וקובץ ה-Dockerfile במפורש
+        # מגדיר את שם התמונה המלא ב-ACR החדש
+        imageToBuild: ${{ secrets.ACR_NAME }}.azurecr.io/fear-greed-bot-image:${{ github.sha }}
+        
+        # פרטי הקוד וה-Dockerfile במפורש
         appSourcePath: ${{ github.workspace }}
         dockerfilePath: Dockerfile 
         
@@ -34,10 +37,7 @@ jobs:
         resourceGroup: ${{ secrets.RESOURCE_GROUP }}
         containerAppEnvironment: fear-greed-bot-app-env
         
-        # פתרון לבעיית Registry: נותן את ה-URL העוקף שנוצר
-        registryUrl: ${{ secrets.REGISTRY_SERVER }} 
-        
-        # פרטי כניסה ל-ACR המנוהל באמצעות Service Principal
+        # פרטי כניסה ל-ACR המנוהל (באמצעות ה-Service Principal)
         acrUsername: ${{ fromJson(secrets.AZURE_CREDENTIALS).clientId }}
         acrPassword: ${{ fromJson(secrets.AZURE_CREDENTIALS).clientSecret }}
         
