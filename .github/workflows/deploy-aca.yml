@@ -28,7 +28,4 @@ jobs:
         resourceGroup: ${{ secrets.RESOURCE_GROUP }}
         containerAppEnvironment: fear-greed-bot-app-env 
         
-        targetPort: 8080 
-
-    - name: Azure Logout
-      uses: azure/logout@v1
+        targetPort: 8080
