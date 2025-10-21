@@ -31,18 +31,28 @@ bot = commands.Bot(command_prefix='/', intents=intents)
 async def fear_greed_loop():
     while True:
         now = datetime.now()
-        # For debugging, send every 30 seconds
-        next_time = now + timedelta(seconds=30)
-        sleep_seconds = (next_time - now).total_seconds()
-        await asyncio.sleep(sleep_seconds)
-        
-        if hasattr(bot, 'fear_greed_channel') and bot.fear_greed_channel:
+        interval = getattr(bot, 'fear_greed_interval', 30)
+        current_minute = now.minute
+        remainder = current_minute % interval
+        if remainder == 0:
+            # Send immediately if at the exact interval
             print(f"Sending Fear & Greed image at {datetime.now()}", flush=True)
-            image_bytes = await asyncio.to_thread(capture_fear_greed_gauge)
+            image_bytes = await capture_fear_greed_gauge()
             if image_bytes:
                 await bot.fear_greed_channel.send(file=discord.File(fp=io.BytesIO(image_bytes), filename="fear_greed_gauge.png"))
             else:
                 await bot.fear_greed_channel.send("Failed to capture screenshot.")
+        
+        # Calculate next send time
+        next_minute = ((current_minute // interval) + 1) * interval
+        if next_minute >= 60:
+            next_minute = 0
+            next_time = now.replace(hour=now.hour + 1, minute=next_minute, second=0, microsecond=0)
+        else:
+            next_time = now.replace(minute=next_minute, second=0, microsecond=0)
+        
+        sleep_seconds = (next_time - now).total_seconds()
+        await asyncio.sleep(sleep_seconds)
 
 @bot.event
 async def on_ready():

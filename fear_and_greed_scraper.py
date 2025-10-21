@@ -1,45 +1,63 @@
-from playwright.sync_api import sync_playwright
+from playwright.async_api import async_playwright
+import asyncio
 import random
 
 def _get_user_agent() -> str:
-    """Get a random User-Agent to avoid blocking."""
-    user_agents = [
-        "Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10.10; rv:86.1) Gecko/20100101 Firefox/86.1",
-        "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:86.1) Gecko/20100101 Firefox/86.1",
-        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.10; rv:82.1) Gecko/20100101 Firefox/82.1",
-        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.13; rv:86.0) Gecko/20100101 Firefox/86.0",
-        "Mozilla/5.0 (Windows NT 10.0; WOW64; rv:86.0) Gecko/20100101 Firefox/86.0",
-        "Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10.10; rv:83.0) Gecko/20100101 Firefox/83.0",
-        "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:84.0) Gecko/20100101 Firefox/84.0",
-    ]
-    return random.choice(user_agents)
+    """Get a Chrome User-Agent to avoid blocking."""
+    return "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36"
 
-def capture_fear_greed_gauge():
+async def capture_fear_greed_gauge():
     """
     Scrapes CNN Fear & Greed page using Playwright, finds the div with class 'market-tabbed-container', and screenshots it as PNG.
     """
     url = "https://money.cnn.com/data/fear-and-greed/"
     
-    with sync_playwright() as p:
-        browser = p.chromium.launch(headless=True)
-        page = browser.new_page()
-        page.set_viewport_size({"width": 1200, "height": 800})
-        page.set_extra_http_headers({"User-Agent": _get_user_agent()})
-        page.goto(url)
-        page.wait_for_load_state('networkidle')
-        page.wait_for_timeout(3000)  # Wait for dynamic content to load
+    try:
+        async with async_playwright() as p:
+            print("Launching browser...")
+            browser = await p.firefox.launch(
+                headless=True,
+                args=[
+                    '--no-sandbox',
+                    '--disable-dev-shm-usage'
+                ]
+            )
+            print("Browser launched, creating context...")
+            context = await browser.new_context(
+                user_agent=_get_user_agent(),
+                viewport={'width': 1200, 'height': 800}
+            )
+            page = await context.new_page()
+            await page.add_init_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
+            await page.set_extra_http_headers({"User-Agent": _get_user_agent()})
+            print("Going to URL...")
+            await page.goto(url)
+            print("Waiting for load state...")
+            await page.wait_for_load_state('domcontentloaded')
+            print("Waiting for selector...")
+            await page.wait_for_selector('.market-tabbed-container', timeout=10000)
+            print("Selector found, waiting for content...")
+            await page.wait_for_timeout(3000)  # Wait for dynamic content
+            print("Taking screenshot...")
+            #take a screen shot of the div with class 'market-tabbed-container', select a div
+            div_handle = await page.query_selector('.market-tabbed-container')
+            if div_handle:
+                await div_handle.scroll_into_view_if_needed()
+                await page.wait_for_timeout(2000)  # Wait after scroll
+                screenshot_bytes = await div_handle.screenshot()
+                print("Captured div screenshot.")
+            else:
+                print("Selector not found, cannot take screenshot.")
+                screenshot_bytes = None
+            print("Screenshot taken.")
+            
+            await browser.close()
         
-        # Wait for the container div to load
-        page.wait_for_selector('div.market-tabbed-container', timeout=10000)
-        
-        # Screenshot the container div
-        element = page.locator('div.market-tabbed-container')
-        screenshot_bytes = element.screenshot()
-        
-        browser.close()
-    
-    print("Div scraped successfully.")
-    return screenshot_bytes
+        print("Div scraped successfully.")
+        return screenshot_bytes
+    except Exception as e:
+        print(f"Error in scraper: {e}")
+        return None
 
 if __name__ == "__main__":
-    capture_fear_greed_gauge()
+    asyncio.run(capture_fear_greed_gauge())
