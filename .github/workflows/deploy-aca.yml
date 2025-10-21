@@ -19,22 +19,25 @@ jobs:
       with:
         creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-    # 🚨 התיקון הסופי: נאחד את ה-Build וה-Deploy ונסמוך על הפרמטרים
-    #  (במקרה של ACA, ה-Action יוצר את האפליקציה אם היא חסרה כאשר הוא מבצע Build)
     - name: Build and Deploy Container App
       uses: azure/container-apps-deploy-action@v1
       with:
-        appSourcePath: ${{ github.workspace }}
-        dockerfilePath: Dockerfile # חובה לציין במפורש!
+        # פתרון לבעיית Docker Build ו-ResourceNotFound: מגדיר את תמונת היעד המלאה
+        imageToBuild: ${{ secrets.REGISTRY_SERVER }}/fear-greed-bot-image:${{ github.sha }} 
         
+        # הגדרת נתיב הקוד וקובץ ה-Dockerfile במפורש
+        appSourcePath: ${{ github.workspace }}
+        dockerfilePath: Dockerfile 
+        
+        # פרטי האפליקציה ב-Azure
         containerAppName: fear-greed-bot-app
         resourceGroup: ${{ secrets.RESOURCE_GROUP }}
         containerAppEnvironment: fear-greed-bot-app-env
         
-        # כתובת ה-Registry הפיקטיבית/עוקפת
+        # פתרון לבעיית Registry: נותן את ה-URL העוקף שנוצר
         registryUrl: ${{ secrets.REGISTRY_SERVER }} 
         
-        # פרטי כניסה ל-ACR המנוהל
+        # פרטי כניסה ל-ACR המנוהל באמצעות Service Principal
         acrUsername: ${{ fromJson(secrets.AZURE_CREDENTIALS).clientId }}
         acrPassword: ${{ fromJson(secrets.AZURE_CREDENTIALS).clientSecret }}
         
