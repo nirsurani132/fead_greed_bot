@@ -36,12 +36,21 @@ async def fear_greed_loop():
         remainder = current_minute % interval
         if remainder == 0:
             # Send immediately if at the exact interval
-            print(f"Sending Fear & Greed image at {datetime.now()}", flush=True)
-            image_bytes = await capture_fear_greed_gauge()
-            if image_bytes:
-                await bot.fear_greed_channel.send(file=discord.File(fp=io.BytesIO(image_bytes), filename="fear_greed_gauge.png"))
+            if hasattr(bot, 'fear_greed_channel') and bot.fear_greed_channel:
+                print(f"Sending Fear & Greed image at {datetime.now()}", flush=True)
+                print(f"Channel: {bot.fear_greed_channel.name} in {bot.fear_greed_channel.guild.name}", flush=True)
+                try:
+                    image_bytes = await capture_fear_greed_gauge()
+                    if image_bytes:
+                        await bot.fear_greed_channel.send(file=discord.File(fp=io.BytesIO(image_bytes), filename="fear_greed_gauge.png"))
+                        print("Image sent successfully", flush=True)
+                    else:
+                        await bot.fear_greed_channel.send("Failed to capture screenshot.")
+                        print("Failed message sent", flush=True)
+                except Exception as e:
+                    print(f"Error sending Fear & Greed image: {e}", flush=True)
             else:
-                await bot.fear_greed_channel.send("Failed to capture screenshot.")
+                print("Fear & Greed channel not set, skipping send.")
         
         # Calculate next send time
         next_minute = ((current_minute // interval) + 1) * interval
