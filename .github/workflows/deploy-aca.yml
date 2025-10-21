@@ -27,10 +27,9 @@ jobs:
         containerAppName: fear-greed-bot-app
         resourceGroup: ${{ secrets.RESOURCE_GROUP }}
         containerAppEnvironment: fear-greed-bot-app-env
-
-        enableAcrBuild: true
         
+        # פרמטרי ה-Registry (שימוש בזהות Service Principal)
         acrUsername: ${{ fromJson(secrets.AZURE_CREDENTIALS).clientId }}
         acrPassword: ${{ fromJson(secrets.AZURE_CREDENTIALS).clientSecret }}
         
-        targetPort: 8080 
+        targetPort: 8080
