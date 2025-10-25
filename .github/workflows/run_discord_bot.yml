@@ -30,11 +30,9 @@ jobs:
         with:
           resourceGroup: MyContainerAppResourceGroup
           containerAppName: feargreedbot
-          containerAppEnvironment: feargreedbot-env  # Create if not exists
-          image: feargreedbotacr.azurecr.io/feargreedbot:${{ github.sha }}
-          targetPort: 80  # Not needed for bot, but required
+          containerAppEnvironment: feargreedbot-env
+          imageToDeploy: feargreedbotacr.azurecr.io/feargreedbot:${{ github.sha }}
+          targetPort: 80
           environmentVariables: |
             DISCORD_TOKEN=${{ secrets.DISCORD_TOKEN }}
-          cpu: 1
-          memory: 1Gi
           location: uaenorth
