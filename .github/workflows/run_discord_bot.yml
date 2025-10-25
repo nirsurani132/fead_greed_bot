@@ -1,30 +1,42 @@
-name: Deploy Discord Bot to Azure
+name: Send Fear & Greed Image
 
 on:
-  push:
+  schedule:
+    - cron: '*/2 * * * *'  # Every 2 minutes for debugging
   workflow_dispatch:
 
 jobs:
-  build-and-deploy:
+  send-image:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Login to Azure
-        uses: azure/login@v1
+      - name: Set up Python
+        uses: actions/setup-python@v4
         with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
+          python-version: '3.9'
 
-      - name: Login to ACR
-        run: |
-          az acr login --name feargreedbotacr
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
 
-      - name: Build and push Docker image
+      - name: Install dependencies
         run: |
-          docker build -t feargreedbotacr.azurecr.io/feargreedbot:${{ github.sha }} .
-          docker push feargreedbotacr.azurecr.io/feargreedbot:${{ github.sha }}
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
 
-      - name: Deploy to Azure Container Instances
+      - name: Install Playwright browsers
         run: |
-          az container create --resource-group MyContainerAppResourceGroup --name feargreedbot --image feargreedbotacr.azurecr.io/feargreedbot:${{ github.sha }} --cpu 1 --memory 2 --restart-policy Always --environment-variables DISCORD_TOKEN=${{ secrets.DISCORD_TOKEN }} --registry-login-server feargreedbotacr.azurecr.io --registry-username 44cbe01a-d40a-4ae5-9ee4-0d46aacaa078 --registry-password ${{ secrets.ACR_CLIENT_SECRET }} --os-type Linux --location uaenorth
+          python -m playwright install-deps
+          python -m playwright install chromium firefox
+
+      - name: Send Fear & Greed image
+        env:
+          WEBHOOK_URL: ${{ secrets.WEBHOOK_URL }}
+        run: |
+          python main.py
