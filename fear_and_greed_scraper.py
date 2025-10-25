@@ -34,6 +34,7 @@ async def capture_fear_greed_gauge():
             await page.goto(url)
             print("Waiting for load state...")
             await page.wait_for_load_state('domcontentloaded')
+            await page.wait_for_timeout(2000)  # Wait for dynamic content like popups
 
             # Look for modal with "Agree" button and click it
             agree_found = False
@@ -43,8 +44,14 @@ async def capture_fear_greed_gauge():
                 'button:has-text("Accept")',
                 'button:has-text("I Accept")',
                 'button:has-text("OK")',
+                'button:has-text("Agree to all")',
+                'button:has-text("Accept all")',
+                'button:has-text("Accept All")',
                 '.cc-accept',
-                '.accept-cookies'
+                '.accept-cookies',
+                'text=Agree',
+                'text=Accept',
+                'text=I Agree'
             ]
 
             # Check main page
