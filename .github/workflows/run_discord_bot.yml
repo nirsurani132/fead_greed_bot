@@ -34,7 +34,7 @@ jobs:
           pip install -r requirements.txt
 
       - name: Install Playwright browsers
-        if: exists('requirements.txt')
+        # Always attempt Playwright installs; safe if Playwright isn't required.
         run: |
           # Install system deps and browsers for Playwright
           python -m playwright install-deps || true
