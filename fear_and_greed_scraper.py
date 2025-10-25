@@ -42,13 +42,29 @@ async def capture_fear_greed_gauge():
             #take a screen shot of the div with class 'market-tabbed-container', select a div
             div_handle = await page.query_selector('.market-tabbed-container')
             if div_handle:
-                await div_handle.scroll_into_view_if_needed()
-                await page.wait_for_timeout(2000)  # Wait after scroll
+                # Make the div visible
+                await page.evaluate("el => { el.style.display = 'block'; el.style.visibility = 'visible'; }", div_handle)
+                # Trigger layout
+                await page.evaluate("el => { el.offsetWidth; el.offsetHeight; }", div_handle)
+                # Hide any popups that appeared
+                try:
+                    await page.evaluate("""
+                    () => {
+                        const keywords = ['Legal Terms'];
+                        const elements = document.querySelectorAll('*');
+                        for (const el of elements) {
+                            const text = (el.innerText || '').toLowerCase();
+                            if (keywords.some(k => text.includes(k))) {
+                                el.style.display = 'none';
+                            }
+                        }
+                    }
+                    """)
+                    print("Hid any popups after making div visible.")
+                except Exception as e:
+                    print(f"Error hiding popups after visible: {e}")
                 screenshot_bytes = await div_handle.screenshot()
                 print("Captured div screenshot.")
-            else:
-                print("Selector not found, cannot take screenshot.")
-                screenshot_bytes = None
             print("Screenshot taken.")
             
             await browser.close()
