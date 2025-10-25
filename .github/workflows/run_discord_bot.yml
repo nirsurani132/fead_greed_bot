@@ -2,7 +2,7 @@ name: Send Fear & Greed Image
 
 on:
   schedule:
-    - cron: '*/30 * * * *'  # Every 30 minutes
+    - cron: '0,30 * * * *'  # Every 30 minutes on the hour and half-hour
   workflow_dispatch:
 
 jobs:
