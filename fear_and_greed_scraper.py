@@ -63,6 +63,9 @@ async def capture_fear_greed_gauge():
                     print("Hid any popups after making div visible.")
                 except Exception as e:
                     print(f"Error hiding popups after visible: {e}")
+                # Log the HTML for debugging
+                html = await page.evaluate("() => document.body.outerHTML")
+                print("Page HTML (first 2000 chars):", html[:2000])
                 screenshot_bytes = await div_handle.screenshot()
                 print("Captured div screenshot.")
             print("Screenshot taken.")
