@@ -34,6 +34,54 @@ async def capture_fear_greed_gauge():
             await page.goto(url)
             print("Waiting for load state...")
             await page.wait_for_load_state('domcontentloaded')
+
+            # Look for modal with "Agree" button and click it
+            agree_found = False
+            agree_selectors = [
+                'button:has-text("Agree")',
+                'button:has-text("I Agree")',
+                'button:has-text("Accept")',
+                'button:has-text("I Accept")',
+                'button:has-text("OK")',
+                '.cc-accept',
+                '.accept-cookies'
+            ]
+
+            # Check main page
+            for sel in agree_selectors:
+                try:
+                    handle = await page.query_selector(sel)
+                    if handle:
+                        print(f"Found agree button: {sel}. Clicking...")
+                        await handle.click()
+                        agree_found = True
+                        await page.wait_for_timeout(1000)  # Wait for modal to close
+                        break
+                except Exception as e:
+                    print(f"Error clicking {sel}: {e}")
+
+            # If not found, check frames
+            if not agree_found:
+                for frame in page.frames:
+                    for sel in agree_selectors:
+                        try:
+                            fh = await frame.query_selector(sel)
+                            if fh:
+                                print(f"Found agree button in frame: {sel}. Clicking...")
+                                await fh.click()
+                                agree_found = True
+                                await page.wait_for_timeout(1000)
+                                break
+                        except Exception:
+                            pass
+                    if agree_found:
+                        break
+
+            if agree_found:
+                print("Agree button clicked, modal should be closed.")
+            else:
+                print("No agree button found, proceeding without clicking.")
+
             print("Waiting for selector...")
             await page.wait_for_selector('.market-tabbed-container', timeout=10000)
             print("Selector found, waiting for content...")
