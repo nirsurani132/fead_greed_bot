@@ -27,4 +27,4 @@ jobs:
 
       - name: Deploy to Azure Container Instances
         run: |
-          az container create --resource-group MyContainerAppResourceGroup --name feargreedbot --image feargreedbotacr.azurecr.io/feargreedbot:${{ github.sha }} --cpu 1 --memory 2 --restart-policy Always --environment-variables DISCORD_TOKEN=${{ secrets.DISCORD_TOKEN }} --registry-login-server feargreedbotacr.azurecr.io --registry-username 00000000-0000-0000-0000-000000000000 --registry-password ${{ secrets.ACR_TOKEN }} --location uaenorth
+          az container create --resource-group MyContainerAppResourceGroup --name feargreedbot --image feargreedbotacr.azurecr.io/feargreedbot:${{ github.sha }} --cpu 1 --memory 2 --restart-policy Always --environment-variables DISCORD_TOKEN=${{ secrets.DISCORD_TOKEN }} --registry-login-server feargreedbotacr.azurecr.io --registry-username 00000000-0000-0000-0000-000000000000 --registry-password ${{ secrets.ACR_TOKEN }} --os-type Linux --location uaenorth
