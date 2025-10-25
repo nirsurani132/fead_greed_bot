@@ -42,32 +42,18 @@ async def capture_fear_greed_gauge():
             #take a screen shot of the div with class 'market-tabbed-container', select a div
             div_handle = await page.query_selector('.market-tabbed-container')
             if div_handle:
+                # Remove the popup modal
+                await page.evaluate('document.querySelector(\'div[style*="background-color: rgba(0, 0, 0, 0.4)"]\')?.remove();')
+                print("Removed popup modal.")
                 # Make the div visible
                 await page.evaluate("el => { el.style.display = 'block'; el.style.visibility = 'visible'; }", div_handle)
                 # Trigger layout
                 await page.evaluate("el => { el.offsetWidth; el.offsetHeight; }", div_handle)
-                # Hide any popups that appeared
-                try:
-                    await page.evaluate("""
-                    () => {
-                        const keywords = ['Legal Terms'];
-                        const elements = document.querySelectorAll('*');
-                        for (const el of elements) {
-                            const text = (el.innerText || '').toLowerCase();
-                            if (keywords.some(k => text.includes(k))) {
-                                el.style.display = 'none';
-                            }
-                        }
-                    }
-                    """)
-                    print("Hid any popups after making div visible.")
-                except Exception as e:
-                    print(f"Error hiding popups after visible: {e}")
-                # Log the HTML for debugging
-                html = await page.evaluate("() => document.body.outerHTML")
-                print("Page HTML (first 2000 chars):", html)
-                screenshot_bytes = await div_handle.screenshot()
+                screenshot_bytes = await div_handle.screenshot(type='png')
                 print("Captured div screenshot.")
+            else:
+                print("Selector not found, cannot take screenshot.")
+                screenshot_bytes = None
             print("Screenshot taken.")
             
             await browser.close()
