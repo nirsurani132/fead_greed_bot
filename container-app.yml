@@ -1,0 +1,23 @@
+location: uaenorth
+properties:
+  environmentId: /subscriptions/5270cb99-abc9-4138-888b-be9d66da6ddf/resourceGroups/MyContainerAppResourceGroup/providers/Microsoft.App/managedEnvironments/feargreedbot-env
+  template:
+    containers:
+    - image: feargreedbotacr.azurecr.io/feargreedbot:${{ github.sha }}
+      name: feargreedbot
+      resources:
+        cpu: 1.0
+        memory: 2Gi
+      env:
+      - name: DISCORD_TOKEN
+        secretRef: discord-token
+    scale:
+      minReplicas: 1
+      maxReplicas: 1
+  configuration:
+    activeRevisionsMode: Single
+    secrets:
+    - name: discord-token
+      value: ${{ secrets.DISCORD_TOKEN }}
+    ingress:
+      external: false

@@ -25,14 +25,6 @@ jobs:
           docker build -t feargreedbotacr.azurecr.io/feargreedbot:${{ github.sha }} .
           docker push feargreedbotacr.azurecr.io/feargreedbot:${{ github.sha }}
 
-      - name: Deploy to Azure Container Apps
-        uses: azure/container-apps-deploy-action@v1
-        with:
-          resourceGroup: MyContainerAppResourceGroup
-          containerAppName: feargreedbot
-          containerAppEnvironment: feargreedbot-env
-          imageToDeploy: feargreedbotacr.azurecr.io/feargreedbot:${{ github.sha }}
-          targetPort: 80
-          environmentVariables: |
-            DISCORD_TOKEN=${{ secrets.DISCORD_TOKEN }}
-          location: uaenorth
+      - name: Deploy to Azure Container Instances
+        run: |
+          az container create --resource-group MyContainerAppResourceGroup --name feargreedbot --image feargreedbotacr.azurecr.io/feargreedbot:${{ github.sha }} --cpu 1 --memory 2 --restart-policy Always --environment-variables DISCORD_TOKEN=${{ secrets.DISCORD_TOKEN }} --location uaenorth
