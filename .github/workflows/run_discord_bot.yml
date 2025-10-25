@@ -1,0 +1,46 @@
+name: Run Discord Bot
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  run-bot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    env:
+      # Make sure to add DISCORD_TOKEN to repository Secrets
+      DISCORD_TOKEN: ${{ secrets.DISCORD_TOKEN }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Install Playwright browsers
+        if: exists('requirements.txt')
+        run: |
+          # Install system deps and browsers for Playwright
+          python -m playwright install-deps || true
+          python -m playwright install chromium firefox || true
+
+      - name: Run the bot
+        run: |
+          echo "Starting Discord bot (will run until the job times out)..."
+          python main.py
