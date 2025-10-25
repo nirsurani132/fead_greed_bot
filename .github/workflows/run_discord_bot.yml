@@ -1,6 +1,7 @@
 name: Send Fear & Greed Image
 
 on:
+  push:
   schedule:
     - cron: '*/2 * * * *'  # Every 2 minutes for debugging
   workflow_dispatch:
