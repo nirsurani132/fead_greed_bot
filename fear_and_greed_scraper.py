@@ -10,7 +10,7 @@ async def capture_fear_greed_gauge():
     """
     Scrapes CNN Fear & Greed page using Playwright, finds the div with class 'market-tabbed-container', and screenshots it as PNG.
     """
-    url = "https://money.cnn.com/data/fear-and-greed/"
+    url = "https://edition.cnn.com/markets/fear-and-greed"
     
     try:
         async with async_playwright() as p:
@@ -34,43 +34,6 @@ async def capture_fear_greed_gauge():
             await page.goto(url)
             print("Waiting for load state...")
             await page.wait_for_load_state('domcontentloaded')
-            await page.wait_for_timeout(5000)  # Wait longer for dynamic content like popups
-
-            # Look for modal with "Agree" button and click it
-            agree_found = False
-            import re
-            try:
-                # Try to find any clickable element with "agree" in text (case insensitive)
-                agree_locator = page.locator('button, a, div, span, input[type="button"], input[type="submit"]').filter(has_text=re.compile(r'agree', re.IGNORECASE))
-                count = await agree_locator.count()
-                if count > 0:
-                    print(f"Found {count} agree element(s). Clicking the first one...")
-                    await agree_locator.first.click()
-                    agree_found = True
-                    await page.wait_for_timeout(1000)  # Wait for modal to close
-            except Exception as e:
-                print(f"Error with locator: {e}")
-
-            # If not found, check frames
-            if not agree_found:
-                for frame in page.frames:
-                    try:
-                        agree_locator = frame.locator('button, a, div, span, input[type="button"], input[type="submit"]').filter(has_text=re.compile(r'agree', re.IGNORECASE))
-                        count = await agree_locator.count()
-                        if count > 0:
-                            print(f"Found {count} agree element(s) in frame. Clicking the first one...")
-                            await agree_locator.first.click()
-                            agree_found = True
-                            await page.wait_for_timeout(1000)
-                            break
-                    except Exception:
-                        pass
-
-            if agree_found:
-                print("Agree button clicked, modal should be closed.")
-            else:
-                print("No agree button found, proceeding without clicking.")
-
             print("Waiting for selector...")
             await page.wait_for_selector('.market-tabbed-container', timeout=10000)
             print("Selector found, waiting for content...")
