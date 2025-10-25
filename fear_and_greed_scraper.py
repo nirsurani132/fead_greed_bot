@@ -34,55 +34,37 @@ async def capture_fear_greed_gauge():
             await page.goto(url)
             print("Waiting for load state...")
             await page.wait_for_load_state('domcontentloaded')
-            await page.wait_for_timeout(2000)  # Wait for dynamic content like popups
+            await page.wait_for_timeout(5000)  # Wait longer for dynamic content like popups
 
             # Look for modal with "Agree" button and click it
             agree_found = False
-            agree_selectors = [
-                'button:has-text("Agree")',
-                'button:has-text("I Agree")',
-                'button:has-text("Accept")',
-                'button:has-text("I Accept")',
-                'button:has-text("OK")',
-                'button:has-text("Agree to all")',
-                'button:has-text("Accept all")',
-                'button:has-text("Accept All")',
-                '.cc-accept',
-                '.accept-cookies',
-                'text=Agree',
-                'text=Accept',
-                'text=I Agree'
-            ]
-
-            # Check main page
-            for sel in agree_selectors:
-                try:
-                    handle = await page.query_selector(sel)
-                    if handle:
-                        print(f"Found agree button: {sel}. Clicking...")
-                        await handle.click()
-                        agree_found = True
-                        await page.wait_for_timeout(1000)  # Wait for modal to close
-                        break
-                except Exception as e:
-                    print(f"Error clicking {sel}: {e}")
+            import re
+            try:
+                # Try to find any clickable element with "agree" in text (case insensitive)
+                agree_locator = page.locator('button, a, div, span, input[type="button"], input[type="submit"]').filter(has_text=re.compile(r'agree', re.IGNORECASE))
+                count = await agree_locator.count()
+                if count > 0:
+                    print(f"Found {count} agree element(s). Clicking the first one...")
+                    await agree_locator.first.click()
+                    agree_found = True
+                    await page.wait_for_timeout(1000)  # Wait for modal to close
+            except Exception as e:
+                print(f"Error with locator: {e}")
 
             # If not found, check frames
             if not agree_found:
                 for frame in page.frames:
-                    for sel in agree_selectors:
-                        try:
-                            fh = await frame.query_selector(sel)
-                            if fh:
-                                print(f"Found agree button in frame: {sel}. Clicking...")
-                                await fh.click()
-                                agree_found = True
-                                await page.wait_for_timeout(1000)
-                                break
-                        except Exception:
-                            pass
-                    if agree_found:
-                        break
+                    try:
+                        agree_locator = frame.locator('button, a, div, span, input[type="button"], input[type="submit"]').filter(has_text=re.compile(r'agree', re.IGNORECASE))
+                        count = await agree_locator.count()
+                        if count > 0:
+                            print(f"Found {count} agree element(s) in frame. Clicking the first one...")
+                            await agree_locator.first.click()
+                            agree_found = True
+                            await page.wait_for_timeout(1000)
+                            break
+                    except Exception:
+                        pass
 
             if agree_found:
                 print("Agree button clicked, modal should be closed.")
